@@ -76,7 +76,7 @@ namespace ReservationSystem.Database
         }
 
         /// <summary>
-        /// Executes a SQL command and returns the identity of the inserted row
+        /// Executes a SQL command and returns a scalar value from the first column of the first row
         /// </summary>
         public int ExecuteScalar(string sql, Dictionary<string, object>? parameters = null)
         {

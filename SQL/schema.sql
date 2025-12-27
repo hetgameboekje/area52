@@ -27,8 +27,8 @@ CREATE TABLE ReservationTables (
     Id INT PRIMARY KEY IDENTITY(1,1),
     ReservationId INT NOT NULL,
     TableId INT NOT NULL,
-    FOREIGN KEY (ReservationId) REFERENCES Reservations(Id),
-    FOREIGN KEY (TableId) REFERENCES Tables(Id),
+    FOREIGN KEY (ReservationId) REFERENCES Reservations(Id) ON DELETE CASCADE,
+    FOREIGN KEY (TableId) REFERENCES Tables(Id) ON DELETE CASCADE,
     CONSTRAINT UK_ReservationTables UNIQUE (ReservationId, TableId)
 );
 

@@ -119,6 +119,12 @@ namespace ReservationSystem.Services
         /// </summary>
         public void UpdateReservation(Reservation reservation)
         {
+            // Validate tables availability if tables or date/time changed
+            if (!AreTablesAvailable(reservation.TableIds, reservation.ReservationDate, reservation.ReservationTime, reservation.Id))
+            {
+                throw new InvalidOperationException("One or more selected tables are not available for the specified time");
+            }
+
             var sql = @"UPDATE Reservations SET 
                        CustomerName = @CustomerName,
                        CustomerEmail = @CustomerEmail,
@@ -163,12 +169,10 @@ namespace ReservationSystem.Services
         }
 
         /// <summary>
-        /// Delete a reservation
+        /// Delete a reservation (CASCADE delete will automatically remove associated table entries)
         /// </summary>
         public void DeleteReservation(int id)
         {
-            _db.Execute("DELETE FROM ReservationTables WHERE ReservationId = @ReservationId",
-                       new Dictionary<string, object> { { "@ReservationId", id } });
             _db.Execute("DELETE FROM Reservations WHERE Id = @Id",
                        new Dictionary<string, object> { { "@Id", id } });
         }
@@ -202,8 +206,14 @@ namespace ReservationSystem.Services
         /// </summary>
         private bool CanAcceptReservation(DateTime date)
         {
-            var sql = "SELECT COUNT(*) as Count FROM Reservations WHERE CAST(ReservationDate as DATE) = @Date";
-            var results = _db.Query(sql, new Dictionary<string, object> { { "@Date", date.Date } });
+            var sql = @"SELECT COUNT(*) as Count FROM Reservations 
+                       WHERE CAST(ReservationDate as DATE) = @Date 
+                       AND Status != @CancelledStatus";
+            var results = _db.Query(sql, new Dictionary<string, object> 
+            { 
+                { "@Date", date.Date },
+                { "@CancelledStatus", (int)ReservationStatus.Cancelled }
+            });
 
             var count = results.Count > 0 ? Convert.ToInt32(results[0]["Count"]) : 0;
             return count < _maxReservationsPerDay;
@@ -212,7 +222,7 @@ namespace ReservationSystem.Services
         /// <summary>
         /// Check if tables are available for the given date and time
         /// </summary>
-        private bool AreTablesAvailable(List<int> tableIds, DateTime date, TimeSpan time)
+        private bool AreTablesAvailable(List<int> tableIds, DateTime date, TimeSpan time, int? excludeReservationId = null)
         {
             if (tableIds.Count == 0)
                 return true;
@@ -234,11 +244,20 @@ namespace ReservationSystem.Services
                 parameters[paramName] = tableIds[i];
             }
 
+            // Add exclusion for current reservation when updating
+            string excludeClause = "";
+            if (excludeReservationId.HasValue)
+            {
+                excludeClause = "AND R.Id != @ExcludeReservationId";
+                parameters["@ExcludeReservationId"] = excludeReservationId.Value;
+            }
+
             var sql = $@"SELECT COUNT(*) as Count FROM ReservationTables RT
                         INNER JOIN Reservations R ON RT.ReservationId = R.Id
                         WHERE RT.TableId IN ({string.Join(",", tableIdParams)})
                         AND CAST(R.ReservationDate as DATE) = @Date
                         AND R.Status NOT IN (@CancelledStatus)
+                        {excludeClause}
                         AND ABS(DATEDIFF(MINUTE, CAST(R.ReservationTime as TIME), @Time)) < 120";
 
             var results = _db.Query(sql, parameters);
