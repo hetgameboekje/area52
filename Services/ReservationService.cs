@@ -217,20 +217,31 @@ namespace ReservationSystem.Services
             if (tableIds.Count == 0)
                 return true;
 
-            var tableIdsStr = string.Join(",", tableIds);
-            var sql = $@"SELECT COUNT(*) as Count FROM ReservationTables RT
-                        INNER JOIN Reservations R ON RT.ReservationId = R.Id
-                        WHERE RT.TableId IN ({tableIdsStr})
-                        AND CAST(R.ReservationDate as DATE) = @Date
-                        AND R.Status NOT IN (@CancelledStatus)
-                        AND ABS(DATEDIFF(MINUTE, CAST(R.ReservationTime as TIME), @Time)) < 120";
-
-            var results = _db.Query(sql, new Dictionary<string, object>
+            // Build parameterized query to prevent SQL injection
+            var parameters = new Dictionary<string, object>
             {
                 { "@Date", date.Date },
                 { "@Time", time.ToString() },
                 { "@CancelledStatus", (int)ReservationStatus.Cancelled }
-            });
+            };
+
+            // Create parameter placeholders for table IDs
+            var tableIdParams = new List<string>();
+            for (int i = 0; i < tableIds.Count; i++)
+            {
+                var paramName = $"@TableId{i}";
+                tableIdParams.Add(paramName);
+                parameters[paramName] = tableIds[i];
+            }
+
+            var sql = $@"SELECT COUNT(*) as Count FROM ReservationTables RT
+                        INNER JOIN Reservations R ON RT.ReservationId = R.Id
+                        WHERE RT.TableId IN ({string.Join(",", tableIdParams)})
+                        AND CAST(R.ReservationDate as DATE) = @Date
+                        AND R.Status NOT IN (@CancelledStatus)
+                        AND ABS(DATEDIFF(MINUTE, CAST(R.ReservationTime as TIME), @Time)) < 120";
+
+            var results = _db.Query(sql, parameters);
 
             var count = results.Count > 0 ? Convert.ToInt32(results[0]["Count"]) : 0;
             return count == 0;
