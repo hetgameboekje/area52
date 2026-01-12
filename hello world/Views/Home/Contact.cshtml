@@ -1,0 +1,16 @@
+@{
+    ViewBag.Title = "Contact";
+}
+<h2>@ViewBag.Title.</h2>
+<h3>@ViewBag.Message</h3>
+
+<address>
+    My Company Address
+</address>
+
+@model IEnumerable<hello_world.Models.Reservation>
+
+@foreach (var r in Model)
+{
+    <p>@r.Voornaam - @r.Email</p>
+}
