@@ -1,0 +1,32 @@
+
+<h2>@ViewBag.Title</h2>
+<h3>@ViewBag.Message</h3>
+
+<p>Use this area to provide additional information.</p>
+
+<ul id="sortable">
+    <li class="">
+        Item 1
+    </li>
+    <li class="">
+        Item 2
+    </li>
+    <li class="">
+        Item 3
+    </li>
+    <li class="">
+        Item 4
+    </li>
+</ul>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
+    <script>
+        $(function () {
+            $("#sortable").sortable();
+            $("#sortable").disableSelection();
+        });
+    </script>
+}
