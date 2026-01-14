@@ -1,0 +1,64 @@
+@{
+    ViewBag.Title = "Home Page";
+    var status = Request.QueryString["status"];
+}
+@model IEnumerable<area52.Models.ReservationModel>
+
+<h1>Reseveringen</h1>
+
+@if (!string.IsNullOrEmpty(status))
+{
+    switch (status)
+    {
+        case "zeromembercount":
+            <div class="alert alert-warning">
+                Er zijn te weinig deelnemers geselecteerd.
+            </div>
+            break;
+        case "reservationinpast":
+            <div class="alert alert-warning">
+                Reservering is opgeslagen.
+            </div>
+            break;
+
+        case "success":
+            <div class="alert alert-success">
+                Reservering is opgeslagen.
+            </div>
+            break;
+
+        default:
+            break; // of laat default weg als je niks wil tonen
+    }
+
+}
+
+<a href="@Url.Action("Form", "Reservation")" class="btn btn-lg btn-primary">
+    <i class="fa fa-plus"></i> Reservering
+</a>
+
+<hr/>
+
+<table class="table">
+    <thead>
+    <tr class="row">
+        <th class="col-1">Gast id</th>
+        <th class="col-2">Totaal bedrag</th>
+        <th class="col-1">Aantal personen</th>
+        <th class="col-3">Datum</th>
+        <th class="col-3">Opmerking</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var Reservering in Model)
+    {
+        <tr class="row">
+            <td class="col-1">@Reservering.GastID</td>
+            <td class="col-2">@Reservering.Totaal_Bedrag</td>
+            <td class="col-1">@Reservering.Aantal_Personen</td>
+            <td class="col-3">@Reservering.Reserveringsdatum</td>
+            <td class="col-3 text-nowrap">@Reservering.Opmerkingen</td>
+        </tr>
+    }
+    </tbody>
+</table>
