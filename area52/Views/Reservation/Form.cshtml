@@ -1,0 +1,44 @@
+@{
+    ViewBag.Title = "Reservering";
+    
+}
+
+@model area52.Models.ReservationModel
+
+<div class="container">
+    <h2>Nieuwe Reservering</h2>
+    
+    <form method="post" action="/Reservation/Create">
+        <div class="form-group">
+            <label for="aantal_personen">Aantal Personen:</label>
+            <input type="number" id="aantal_personen" name="aantal_personen" 
+                   min="1" required class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label for="reserveringsdatum">Reserveringsdatum:</label>
+            <input type="date" id="reserveringsdatum" name="reserveringsdatum" 
+                   required class="form-control" />
+        </div>
+        
+        <div class="form-group">
+            
+            <label for="referencetype">Reseverings soort</label>
+            <select id="referencetype" name="referencetype" required class="form-control">
+                <option value="">-- Selecteer een waarde --</option>
+                <option value="table">Restaurant</option>
+                <option value="activity">Activiteit</option>
+                <option value="housing">Huis</option>
+            </select>
+            
+        </div>
+
+        <div class="form-group">
+            <label for="opmerkingen">Opmerkingen:</label>
+            <textarea id="opmerkingen" name="opmerkingen" rows="5" 
+                      class="form-control" placeholder="Voer hier uw opmerkingen in"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Reservering Plaatsen</button>
+    </form>
+</div>
